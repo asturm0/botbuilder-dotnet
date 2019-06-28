@@ -86,9 +86,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Bot.Builder.TestB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Adapters", "Adapters", "{B765958C-1CD5-49DF-9EA0-8F8756951F57}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.BotKit", "libraries\Adapters\Microsoft.BotKit\Microsoft.BotKit.csproj", "{C756BAD8-12A4-4BB6-B444-B8220A581A84}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Bot.Builder.BotKit", "libraries\Adapters\Microsoft.Bot.Builder.BotKit\Microsoft.Bot.Builder.BotKit.csproj", "{C756BAD8-12A4-4BB6-B444-B8220A581A84}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.BotKit.Adapters.Slack", "libraries\Adapters\Microsoft.BotKit.Adapters.Slack\Microsoft.BotKit.Adapters.Slack.csproj", "{15AD271F-321B-4C98-B319-EC04FBF5C75B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Bot.Builder.Adapters.Slack", "libraries\Adapters\Microsoft.Bot.Builder.Adapters.Slack\Microsoft.Bot.Builder.Adapters.Slack.csproj", "{15AD271F-321B-4C98-B319-EC04FBF5C75B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
