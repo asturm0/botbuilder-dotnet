@@ -85,7 +85,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                         new SetProperty()
                         {
                              Property = "user.name",
-                             Value = new ExpressionEngine().Parse("'frank'")
+                             Value = "'frank'"
                         },
                         new TraceActivity()
                         {
@@ -130,7 +130,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                     {
                         new IfCondition()
                         {
-                            Condition = new ExpressionEngine().Parse("user.name == null"),
+                            Condition = "user.name == null",
                             Steps = new List<IDialog>()
                             {
                                 new TextInput() {
@@ -166,7 +166,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                         new SetProperty()
                         {
                             Property = "user.name",
-                            Value = new ExpressionEngine().Parse("'frank'")
+                            Value = "'frank'"
                         },
                         new SwitchCondition()
                         {
@@ -198,7 +198,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                         new SetProperty()
                         {
                             Property = "user.name",
-                            Value = new ExpressionEngine().Parse("'Zoidberg'")
+                            Value = "'Zoidberg'"
                         },
                         new SwitchCondition()
                         {
@@ -230,7 +230,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                         new SetProperty()
                         {
                             Property = "user.age",
-                            Value = new ExpressionEngine().Parse("22")
+                            Value = "22"
                         },
                         new SwitchCondition()
                         {
@@ -262,7 +262,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                         new SetProperty()
                         {
                             Property = "user.isVip",
-                            Value = new ExpressionEngine().Parse("true")
+                            Value = "true"
                         },
                         new SwitchCondition()
                         {
@@ -295,7 +295,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                     {
                         new IfCondition()
                         {
-                            Condition = new ExpressionEngine().Parse("user.name == null"),
+                            Condition = "user.name == null",
                             Steps = new List<IDialog>()
                             {
                                 new TextInput()
@@ -303,9 +303,9 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                                     Prompt = new ActivityTemplate("Hello, what is your name?"),
                                     UnrecognizedPrompt = new ActivityTemplate("How should I call you?"),
                                     Property = "user.name",
-                                    Validations = new List<Expression>()
+                                    Validations = new List<string>()
                                     {
-                                        new ExpressionEngine().Parse("turn._input.Length > 3")
+                                        "turn.value.Length > 3"
                                     }
                                 }
                             }
@@ -342,7 +342,8 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                     {
                         Prompt = new ActivityTemplate("yes or no"),
                         UnrecognizedPrompt = new ActivityTemplate("I need a yes or no."),
-                        Property = "user.confirmed"
+                        Property = "user.confirmed",
+                        AlwaysPrompt = true
                     },
                     new SendActivity("confirmation: {user.confirmed}"),
                     new ConfirmInput()
@@ -392,6 +393,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                         Prompt = new ActivityTemplate("Please select a color:"),
                         UnrecognizedPrompt = new ActivityTemplate("Please select a color:"),
                         Choices = new List<Choice>() { new Choice("red"), new Choice("green"), new Choice("blue") },
+                        AlwaysPrompt = true,
                         Style = ListStyle.Inline
                     },
                     new SendActivity("{user.color}"),
@@ -422,6 +424,122 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
         }
 
         [TestMethod]
+        public async Task Step_ChoiceStringInMemory()
+        {
+            var testDialog = new AdaptiveDialog("planningTest")
+            {
+                AutoEndDialog = false,
+                Steps = new List<IDialog>()
+                {
+                    new SetProperty()
+                    {
+                        Value = "json('[\"red\", \"green\", \"blue\"]')",
+                        Property = "user.choices"
+                    },
+                    new ChoiceInput()
+                    {
+                        Property = "user.color",
+                        Prompt = new ActivityTemplate("Please select a color:"),
+                        UnrecognizedPrompt = new ActivityTemplate("Not a color. Please select a color:"),
+                        ChoicesProperty = "user.choices",
+                        Style = ListStyle.Inline
+                    },
+                    new SendActivity("{user.color}"),
+                    new ChoiceInput()
+                    {
+                        Property = "user.color",
+                        Prompt = new ActivityTemplate("Please select a color:"),
+                        UnrecognizedPrompt = new ActivityTemplate("Please select a color:"),
+                        ChoicesProperty = "user.choices",
+                        AlwaysPrompt = true,
+                        Style = ListStyle.Inline
+                    },
+                    new SendActivity("{user.color}"),
+                    new ChoiceInput()
+                    {
+                        Property = "user.color",
+                        Prompt = new ActivityTemplate("Please select a color:"),
+                        UnrecognizedPrompt = new ActivityTemplate("Please select a color:"),
+                        ChoicesProperty = "user.choices",
+                        AlwaysPrompt = true,
+                        Style = ListStyle.Inline
+                    },
+                    new SendActivity("{user.color}"),
+                }
+            };
+
+            await CreateFlow(testDialog)
+            .Send("hi")
+                .AssertReply("Please select a color: (1) red, (2) green, or (3) blue")
+            .Send("asdasd")
+                .AssertReply("Not a color. Please select a color: (1) red, (2) green, or (3) blue")
+            .Send("3")
+                .AssertReply("blue")
+                .AssertReply("Please select a color: (1) red, (2) green, or (3) blue")
+            .Send("red")
+                .AssertReply("red")
+            .StartTestAsync();
+        }
+
+        [TestMethod]
+        public async Task Step_ChoicesInMemory()
+        {
+            var testDialog = new AdaptiveDialog("planningTest")
+            {
+                AutoEndDialog = false,
+                Steps = new List<IDialog>()
+                {
+                    new SetProperty()
+                    {
+                        Value = "json('[{\"value\": \"red\"}, {\"value\": \"green\"}, {\"value\": \"blue\"}]')",
+                        Property = "user.choices"
+                    },
+                    new ChoiceInput()
+                    {
+                        Property = "user.color",
+                        Prompt = new ActivityTemplate("Please select a color:"),
+                        UnrecognizedPrompt = new ActivityTemplate("Not a color. Please select a color:"),
+                        ChoicesProperty = "user.choices",
+                        Style = ListStyle.Inline
+                    },
+                    new SendActivity("{user.color}"),
+                    new ChoiceInput()
+                    {
+                        Property = "user.color",
+                        Prompt = new ActivityTemplate("Please select a color:"),
+                        UnrecognizedPrompt = new ActivityTemplate("Please select a color:"),
+                        ChoicesProperty = "user.choices",
+                        AlwaysPrompt = true,
+                        Style = ListStyle.Inline
+                    },
+                    new SendActivity("{user.color}"),
+                    new ChoiceInput()
+                    {
+                        Property = "user.color",
+                        Prompt = new ActivityTemplate("Please select a color:"),
+                        UnrecognizedPrompt = new ActivityTemplate("Please select a color:"),
+                        ChoicesProperty = "user.choices",
+                        AlwaysPrompt = true,
+                        Style = ListStyle.Inline
+                    },
+                    new SendActivity("{user.color}"),
+                }
+            };
+
+            await CreateFlow(testDialog)
+            .Send("hi")
+                .AssertReply("Please select a color: (1) red, (2) green, or (3) blue")
+            .Send("asdasd")
+                .AssertReply("Not a color. Please select a color: (1) red, (2) green, or (3) blue")
+            .Send("3")
+                .AssertReply("blue")
+                .AssertReply("Please select a color: (1) red, (2) green, or (3) blue")
+            .Send("red")
+                .AssertReply("red")
+            .StartTestAsync();
+        }
+
+        [TestMethod]
         public async Task Step_NumberInput()
         {
             var testDialog = new AdaptiveDialog("planningTest")
@@ -438,12 +556,11 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                         {
                             Prompt = new ActivityTemplate("Please enter your age."),
                             UnrecognizedPrompt = new ActivityTemplate("The value entered must be greater than 0 and less than 150."),
-                            Value = new ExpressionEngine().Parse("user.userProfile.Age"),
                             Property = "user.userProfile.Age",
                             OutputFormat = NumberOutputFormat.Integer,
-                            Validations = new List<Expression>()
+                            Validations = new List<string>()
                             {
-                                new ExpressionEngine().Parse("turn._input > 0 && turn._input < 150")
+                                "turn.value > 0 && turn.value < 150"
                             }
                         },
                         new SendActivity("I have your age as {user.userProfile.Age}."),
@@ -478,7 +595,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                         new DateTimeInput()
                         {
                             Prompt = new ActivityTemplate("Please enter a date."),
-                            Value = new ExpressionEngine().Parse("user.date"),
+                            Value = "user.date",
                             Property = "user.date",
                         },
                         new SendActivity("You entered {user.date[0].Value}"),
@@ -505,7 +622,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                     {
                         new IfCondition()
                         {
-                            Condition = new ExpressionEngine().Parse("user.name == null"),
+                            Condition = "user.name == null",
                             Steps = new List<IDialog>()
                             {
                                 new TextInput()
@@ -514,9 +631,9 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                                     UnrecognizedPrompt = new ActivityTemplate("How should I call you?"),
                                     InvalidPrompt  = new ActivityTemplate("That does not soud like a name"),
                                     Property = "user.name",
-                                    Validations = new List<Expression>()
+                                    Validations = new List<string>()
                                     {
-                                        new ExpressionEngine().Parse("turn._input.Length > 3")
+                                        "turn.value.Length > 3"
                                     }
                                 }
                             }
@@ -555,7 +672,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                     {
                         new IfCondition()
                         {
-                            Condition = new ExpressionEngine().Parse("user.name == null"),
+                            Condition = "user.name == null",
                             Steps = new List<IDialog>()
                             {
                                 new TextInput()
@@ -605,7 +722,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 {
                     new IfCondition()
                     {
-                        Condition = new ExpressionEngine().Parse("user.name == null"),
+                        Condition = "user.name == null",
                         Steps = new List<IDialog>()
                         {
                             new TextInput()
@@ -678,7 +795,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 {
                     new IfCondition()
                     {
-                        Condition = new ExpressionEngine().Parse("user.name == null"),
+                        Condition = "user.name == null",
                         Steps = new List<IDialog>()
                         {
                             new TextInput()
@@ -782,7 +899,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             {
                 Steps = new List<IDialog>()
                 {
-                    new TextInput() { Prompt = new ActivityTemplate("Hello, what is your name?"), OutputBinding = "user.name" , Value = new ExpressionEngine().Parse("user.name") },
+                    new TextInput() { Prompt = new ActivityTemplate("Hello, what is your name?"), OutputBinding = "user.name" , Value = "user.name" },
                     new SendActivity("Hello {user.name}, nice to meet you!"),
                     new EndTurn(),
                     new RepeatDialog()
@@ -891,26 +1008,26 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("1")
+                        Value = "1"
                     },
 
                     new EditArray()
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("2")
+                        Value = "2"
                     },
 
                     new EditArray()
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("3")
+                        Value = "3"
                     },
 
                     new Foreach()
                     {
-                        ListProperty = new ExpressionEngine().Parse("dialog.todo"),
+                        ListProperty = "dialog.todo",
                         Steps = new List<IDialog>()
                         {
                             new SendActivity("index is: {dialog.index} and value is: {dialog.value}")
@@ -948,42 +1065,42 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("1")
+                        Value = "1"
                     },
 
                     new EditArray()
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("2")
+                        Value = "2"
                     },
 
                     new EditArray()
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("3")
+                        Value = "3"
                     },
 
                     new EditArray()
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("4")
+                        Value = "4"
                     },
 
                     new EditArray()
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("5")
+                        Value = "5"
                     },
 
                     new EditArray()
                     {
                         ArrayProperty = "dialog.todo",
                         ChangeType = EditArray.ArrayChangeType.Push,
-                        Value = new ExpressionEngine().Parse("6")
+                        Value = "6"
                     },
 
                     new ForeachPage()
@@ -996,7 +1113,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                             new SendActivity("This page have 3 items"),
                             new Foreach()
                             {
-                                ListProperty = new ExpressionEngine().Parse("dialog.page"),
+                                ListProperty = "dialog.page",
                                 Steps = new List<IDialog>()
                                 {
                                     new SendActivity("index is: {dialog.index} and value is: {dialog.value}")

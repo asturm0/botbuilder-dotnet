@@ -19,10 +19,12 @@ namespace Microsoft.Bot.Builder.Expressions.Parser
         private static readonly Dictionary<string, string> ShorthandFunctionMap = new Dictionary<string, string>()
         {
             { "#", ExpressionType.Intent },
-            { "@", ExpressionType.Entity },
-            { "$", ExpressionType.Title },
-            { "%", ExpressionType.Instance },
-            { "^", ExpressionType.Option },
+            { "@", ExpressionType.SimpleEntity },
+            { "@@", ExpressionType.Entity },
+            { "$", ExpressionType.Dialog },
+            { "^", ExpressionType.Callstack },
+            { "%", ExpressionType.Option },
+            { "~", ExpressionType.Instance },
         };
 
         private readonly EvaluatorLookup _lookup;
