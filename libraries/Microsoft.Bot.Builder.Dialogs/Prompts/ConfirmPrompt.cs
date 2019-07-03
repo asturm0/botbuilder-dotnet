@@ -52,6 +52,30 @@ namespace Microsoft.Bot.Builder.Dialogs
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ConfirmPrompt"/> class.
+        /// </summary>
+        /// <param name="dialogId">The ID to assign to this prompt.</param>
+        /// <param name="validator">A <see cref="PromptValidator{FoundChoice}"/> that contains additional,
+        /// custom validation for this prompt.</param>
+        /// <param name="attempts">The maximum number of attempts before the <see cref="ValidationFailed"/> delegate is called. Must be greater than 0.</param>
+        /// <param name="validationFailed">The delegate that is called if the prompt attempts exceed <see cref="attempts"/>.</param>
+        /// <param name="defaultLocale">Optional, the default locale used to determine language-specific behavior of the prompt.
+        /// The locale is a 2, 3, or 4 character ISO 639 code that represents a language or language family.</param>
+        /// <remarks>The value of <paramref name="dialogId"/> must be unique within the
+        /// <see cref="DialogSet"/> or <see cref="ComponentDialog"/> to which the prompt is added.
+        /// <para>If the <see cref="Activity.Locale"/>
+        /// of the <see cref="DialogContext"/>.<see cref="DialogContext.Context"/>.<see cref="ITurnContext.Activity"/>
+        /// is specified, then that local is used to determine language specific behavior; otherwise
+        /// the <paramref name="defaultLocale"/> is used. US-English is the used if no language or
+        /// default locale is available, or if the language or locale is not otherwise supported.</para></remarks>
+        public ConfirmPrompt(string dialogId, PromptValidator<bool> validator, int attempts, ValidationFailed validationFailed, string defaultLocale = null)
+            : base(dialogId, validator, attempts, validationFailed)
+        {
+            Style = ListStyle.Auto;
+            DefaultLocale = defaultLocale;
+        }
+
+        /// <summary>
         /// Gets or sets the style of the yes/no choices rendered to the user when prompting.
         /// </summary>
         /// <value>

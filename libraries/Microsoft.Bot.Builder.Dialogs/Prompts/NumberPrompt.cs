@@ -38,6 +38,23 @@ namespace Microsoft.Bot.Builder.Dialogs
             }
         }
 
+        public NumberPrompt(string dialogId, PromptValidator<T> validator, int attempts, ValidationFailed validationFailed, string defaultLocale = null)
+            : base(dialogId, validator, attempts, validationFailed)
+        {
+            DefaultLocale = defaultLocale;
+
+            // Check wheter the number type is supported when the prompt is created.
+            var type = typeof(T);
+            if (!(type == typeof(float)
+                  || type == typeof(int)
+                  || type == typeof(long)
+                  || type == typeof(double)
+                  || type == typeof(decimal)))
+            {
+                throw new NotSupportedException($"NumberPrompt: type argument T of type 'typeof(T)' is not supported");
+            }
+        }
+
         /// <summary>
         /// Gets or sets the default locale used to determine language-specific behavior of the prompt.
         /// </summary>

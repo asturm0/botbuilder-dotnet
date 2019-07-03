@@ -28,6 +28,21 @@ namespace Microsoft.Bot.Builder.Dialogs
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="AttachmentPrompt"/> class.
+        /// </summary>
+        /// <param name="dialogId">The ID to assign to this prompt.</param>
+        /// <param name="validator">A <see cref="PromptValidator{FoundChoice}"/> that contains additional,
+        /// custom validation for this prompt.</param>
+        /// <param name="attempts">The maximum number of attempts before the <see cref="ValidationFailed"/> delegate is called. Must be greater than 0.</param>
+        /// <param name="validationFailed">The delegate that is called if the prompt attempts exceed <see cref="attempts"/>.</param>
+        /// <remarks>The value of <paramref name="dialogId"/> must be unique within the
+        /// <see cref="DialogSet"/> or <see cref="ComponentDialog"/> to which the prompt is added.</remarks>
+        public AttachmentPrompt(string dialogId, PromptValidator<IList<Attachment>> validator, int attempts, ValidationFailed validationFailed)
+            : base(dialogId, validator, attempts, validationFailed)
+        {
+        }
+
+        /// <summary>
         /// Prompts the user for input.
         /// </summary>
         /// <param name="turnContext">Context for the current turn of conversation with the user.</param>
