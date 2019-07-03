@@ -31,7 +31,10 @@ namespace Microsoft.Bot.Builder.Dialogs
 
         private const string PersistedOptions = "options";
         private const string PersistedState = "state";
+
+        private readonly int _attempts;
         private readonly PromptValidator<T> _validator;
+        private readonly ValidationFailed _validationFailed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Prompt{T}"/> class.
@@ -46,6 +49,26 @@ namespace Microsoft.Bot.Builder.Dialogs
             : base(dialogId)
         {
             _validator = validator;
+            _attempts = -1;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Prompt{T}"/> class.
+        /// Called from constructors in derived classes to initialize the <see cref="Prompt{T}"/> class.
+        /// </summary>
+        /// <param name="dialogId">The ID to assign to this prompt.</param>
+        /// <param name="validator">A <see cref="PromptValidator{T}"/> that contains additional,
+        /// custom validation for this prompt.</param>
+        /// <param name="attempts">The maximum number of attempts before the <see cref="ValidationFailed"/> delegate is called. Must be greater than 0.</param>
+        /// <param name="validationFailed">The delegate that is called if the prompt attempts exceed <see cref="attempts"/>.</param>
+        /// <remarks>The value of <paramref name="dialogId"/> must be unique within the
+        /// <see cref="DialogSet"/> or <see cref="ComponentDialog"/> to which the prompt is added.</remarks>
+        public Prompt(string dialogId, PromptValidator<T> validator, int attempts, ValidationFailed validationFailed)
+            : base(dialogId)
+        {
+            _validator = validator;
+            _attempts = attempts > 0 ? attempts : throw new InvalidOperationException($"Attempts must be greater than 0.");
+            _validationFailed = validationFailed;
         }
 
         /// <summary>
@@ -145,6 +168,11 @@ namespace Microsoft.Bot.Builder.Dialogs
             if (isValid)
             {
                 return await dc.EndDialogAsync(recognized.Value, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (_attempts > 0 && Convert.ToInt32(state[AttemptCountKey]) > _attempts)
+            {
+                return await _validationFailed(dc, options, cancellationToken);
             }
 
             if (!dc.Context.Responded)

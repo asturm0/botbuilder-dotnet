@@ -14,4 +14,13 @@ namespace Microsoft.Bot.Builder.Dialogs
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task"/> of bool representing the asynchronous operation indicating validation success or failure.</returns>
     public delegate Task<bool> PromptValidator<T>(PromptValidatorContext<T> promptContext, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The delegate definition of a method that is called if the AttemptCount in <see cref="Prompt{T}"/> exceeds its defined maximum.
+    /// </summary>
+    /// <param name="dc">The dialog context for the current turn of the conversation.</param>
+    /// <param name="options">Optional, additional information to pass to the prompt being started.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used by other objects.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public delegate Task<DialogTurnResult> ValidationFailed(DialogContext dc, object options, CancellationToken cancellationToken = default(CancellationToken));
 }
